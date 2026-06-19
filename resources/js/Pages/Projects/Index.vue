@@ -132,7 +132,7 @@ const formatDate = (dateStr) => {
                 enter-from-class="opacity-0"
                 leave-to-class="opacity-0"
             >
-                <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="showCreateModal = false">
+                <div v-if="showCreateModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" @click.self="showCreateModal = false">
                     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" />
                     <div class="glass-card-elevated w-full max-w-lg p-6 relative animate-slide-up z-10">
                         <h2 class="text-lg font-semibold text-white mb-4">Create New Project</h2>

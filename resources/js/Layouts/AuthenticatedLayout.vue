@@ -126,7 +126,7 @@ const isActive = (routeName) => {
         <!-- Main Content -->
         <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
             <!-- Top Bar -->
-            <header class="h-16 flex items-center justify-between px-4 lg:px-6 border-b border-white/10 bg-nexboard-surface/50 backdrop-blur-xl shrink-0">
+            <header class="h-16 flex items-center justify-between px-4 lg:px-6 border-b border-white/10 bg-nexboard-surface/50 backdrop-blur-xl shrink-0 relative z-30">
                 <!-- Mobile Menu Button -->
                 <button
                     @click="mobileSidebarOpen = true"
@@ -153,7 +153,7 @@ const isActive = (routeName) => {
                     </button>
 
                     <!-- User Dropdown -->
-                    <Dropdown align="right" width="48">
+                    <Dropdown align="right" width="48" content-classes="py-1 bg-nexboard-surface-container-high border border-white/10 rounded-nex overflow-hidden">
                         <template #trigger>
                             <button class="flex items-center gap-2 px-3 py-1.5 rounded-nex text-sm text-nexboard-on-surface hover:bg-white/5 transition-colors">
                                 <div class="w-7 h-7 rounded-full bg-indigo-500/20 flex items-center justify-center">
@@ -168,14 +168,12 @@ const isActive = (routeName) => {
                             </button>
                         </template>
                         <template #content>
-                            <div class="py-1 bg-nexboard-surface-container-high rounded-nex border border-white/10">
-                                <DropdownLink :href="route('profile.edit')" class="text-nexboard-on-surface hover:bg-white/5">
-                                    Profile
-                                </DropdownLink>
-                                <DropdownLink :href="route('logout')" method="post" as="button" class="text-nexboard-on-surface hover:bg-white/5">
-                                    Log Out
-                                </DropdownLink>
-                            </div>
+                            <DropdownLink :href="route('profile.edit')">
+                                Profile
+                            </DropdownLink>
+                            <DropdownLink :href="route('logout')" method="post" as="button">
+                                Log Out
+                            </DropdownLink>
                         </template>
                     </Dropdown>
                 </div>

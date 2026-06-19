@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class ProjectController extends Controller
@@ -43,7 +44,7 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
-        $this->authorize('view', $project);
+        Gate::authorize('view', $project);
 
         $project->load(['tasks' => fn($q) => $q->orderBy('order')]);
 
@@ -62,7 +63,7 @@ class ProjectController extends Controller
 
     public function update(Request $request, Project $project)
     {
-        $this->authorize('update', $project);
+        Gate::authorize('update', $project);
 
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
@@ -81,7 +82,7 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
-        $this->authorize('delete', $project);
+        Gate::authorize('delete', $project);
 
         $project->delete();
 

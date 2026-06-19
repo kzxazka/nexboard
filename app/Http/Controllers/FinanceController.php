@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 
 class FinanceController extends Controller
@@ -84,7 +85,7 @@ class FinanceController extends Controller
 
     public function update(Request $request, Transaction $transaction)
     {
-        $this->authorize('update', $transaction);
+        Gate::authorize('update', $transaction);
 
         $validated = $request->validate([
             'type' => 'sometimes|in:income,expense',
@@ -102,7 +103,7 @@ class FinanceController extends Controller
 
     public function destroy(Transaction $transaction)
     {
-        $this->authorize('delete', $transaction);
+        Gate::authorize('delete', $transaction);
 
         $transaction->delete();
 

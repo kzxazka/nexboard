@@ -63,7 +63,7 @@ const formatDate = (d) => new Date(d).toLocaleDateString('en-US', { month: 'shor
 
         <Teleport to="body">
             <Transition enter-active-class="transition-all duration-300" leave-active-class="transition-all duration-200" enter-from-class="opacity-0" leave-to-class="opacity-0">
-                <div v-if="showCreateModal" class="fixed inset-0 z-50 flex items-center justify-center p-4" @click.self="showCreateModal = false">
+                <div v-if="showCreateModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" @click.self="showCreateModal = false">
                     <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" />
                     <div class="glass-card-elevated w-full max-w-md p-6 relative animate-slide-up z-10">
                         <h2 class="text-lg font-semibold text-white mb-4">New Sketch</h2>
