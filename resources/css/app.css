@@ -1,9 +1,134 @@
-@import 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
+/* Google Fonts - Inter */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+@layer base {
+    body {
+        @apply bg-nexboard-base text-nexboard-on-surface font-sans antialiased;
+    }
+
+    /* Custom scrollbar for dark theme */
+    ::-webkit-scrollbar {
+        @apply w-2;
+    }
+    ::-webkit-scrollbar-track {
+        @apply bg-nexboard-surface-container-lowest;
+    }
+    ::-webkit-scrollbar-thumb {
+        @apply bg-nexboard-outline-variant rounded-full;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        @apply bg-nexboard-outline;
+    }
+}
+
+@layer components {
+    /* Glass Card - Level 1 */
+    .glass-card {
+        @apply rounded-nex-lg border border-white/10 backdrop-blur-xl;
+        background: rgba(30, 41, 59, 0.6);
+    }
+
+    /* Glass Card - Level 2 (Modals/Popovers) */
+    .glass-card-elevated {
+        @apply rounded-nex-lg border border-white/10 backdrop-blur-2xl;
+        background: rgba(30, 41, 59, 0.9);
+        box-shadow: 0 0 30px rgba(99, 102, 241, 0.1);
+    }
+
+    /* Sidebar glass */
+    .glass-sidebar {
+        @apply border-r border-white/10 backdrop-blur-xl;
+        background: rgba(30, 41, 59, 0.6);
+    }
+
+    /* Status badges */
+    .badge {
+        @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wider border;
+    }
+    .badge-success {
+        @apply badge;
+        background: rgba(16, 185, 129, 0.15);
+        color: #10B981;
+        border-color: #10B981;
+    }
+    .badge-warning {
+        @apply badge;
+        background: rgba(245, 158, 11, 0.15);
+        color: #F59E0B;
+        border-color: #F59E0B;
+    }
+    .badge-info {
+        @apply badge;
+        background: rgba(59, 130, 246, 0.15);
+        color: #3B82F6;
+        border-color: #3B82F6;
+    }
+    .badge-error {
+        @apply badge;
+        background: rgba(255, 180, 171, 0.15);
+        color: #ffb4ab;
+        border-color: #ffb4ab;
+    }
+    .badge-neutral {
+        @apply badge;
+        background: rgba(100, 116, 139, 0.15);
+        color: #64748B;
+        border-color: #64748B;
+    }
+    .badge-primary {
+        @apply badge;
+        background: rgba(99, 102, 241, 0.15);
+        color: #818CF8;
+        border-color: #818CF8;
+    }
+
+    /* Button styles */
+    .btn-primary {
+        @apply inline-flex items-center justify-center px-4 py-2 rounded-nex bg-indigo-500 text-white font-medium text-sm
+               transition-all duration-200 ease-in-out
+               hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-500/25
+               focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-nexboard-surface
+               active:scale-[0.98];
+    }
+    .btn-secondary {
+        @apply inline-flex items-center justify-center px-4 py-2 rounded-nex border border-white/20 text-nexboard-on-surface font-medium text-sm
+               transition-all duration-200 ease-in-out
+               hover:bg-indigo-500/10 hover:border-indigo-400/30
+               focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-nexboard-surface
+               active:scale-[0.98];
+    }
+
+    /* Input fields */
+    .input-dark {
+        @apply w-full rounded-nex border border-nexboard-outline-variant px-3 py-2 text-sm text-nexboard-on-surface placeholder-nexboard-on-surface-variant
+               transition-all duration-200
+               focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none;
+        background: rgba(0, 0, 0, 0.2);
+    }
+
+    /* Sidebar nav item */
+    .sidebar-link {
+        @apply flex items-center gap-3 px-3 py-2.5 rounded-nex text-sm font-medium text-nexboard-on-surface-variant
+               transition-all duration-200 ease-in-out
+               hover:bg-white/5 hover:text-nexboard-on-surface;
+    }
+    .sidebar-link-active {
+        @apply sidebar-link bg-indigo-500/15 text-indigo-400 border-l-2 border-indigo-400;
+    }
+
+    /* Metric card */
+    .metric-card {
+        @apply glass-card p-5 transition-all duration-300 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-500/5;
+    }
+}
+
+@layer utilities {
+    /* Smooth page transitions */
+    .page-transition {
+        @apply animate-fade-in;
+    }
 }
