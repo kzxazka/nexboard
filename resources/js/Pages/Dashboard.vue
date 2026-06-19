@@ -59,7 +59,7 @@ const statusConfig = {
                             </svg>
                         </div>
                     </div>
-                    <div class="text-3xl font-bold text-white">{{ stats.activeProjects }}</div>
+                    <div class="text-3xl font-bold text-nexboard-on-surface">{{ stats.activeProjects }}</div>
                     <p class="text-xs text-nexboard-on-surface-variant mt-1">of {{ stats.totalProjects }} total</p>
                 </div>
 
@@ -73,7 +73,7 @@ const statusConfig = {
                             </svg>
                         </div>
                     </div>
-                    <div class="text-3xl font-bold text-white">{{ stats.pendingTasks }}</div>
+                    <div class="text-3xl font-bold text-nexboard-on-surface">{{ stats.pendingTasks }}</div>
                     <p class="text-xs text-nexboard-on-surface-variant mt-1">tasks to complete</p>
                 </div>
 
@@ -111,7 +111,7 @@ const statusConfig = {
             <!-- Recent Projects -->
             <div class="glass-card animate-slide-up" style="animation-delay: 400ms">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-white/10">
-                    <h2 class="text-base font-semibold text-white">Recent Projects</h2>
+                    <h2 class="text-base font-semibold text-nexboard-on-surface">Recent Projects</h2>
                     <Link :href="route('projects.index')" class="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors">
                         View All →
                     </Link>
@@ -147,7 +147,7 @@ const statusConfig = {
                                 }"
                             />
                             <div class="min-w-0">
-                                <p class="text-sm font-medium text-white truncate group-hover:text-indigo-400 transition-colors">
+                                <p class="text-sm font-medium text-nexboard-on-surface truncate group-hover:text-indigo-400 transition-colors">
                                     {{ project.name }}
                                 </p>
                                 <p class="text-xs text-nexboard-on-surface-variant mt-0.5">

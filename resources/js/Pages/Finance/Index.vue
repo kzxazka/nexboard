@@ -1,5 +1,6 @@
 <script setup>
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import ConfirmModal from '@/Components/ConfirmModal.vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -31,9 +32,23 @@ const submit = () => {
     });
 };
 
-const deleteTransaction = (id) => {
-    if (confirm('Delete this transaction?')) {
-        router.delete(route('finance.destroy', id), { preserveScroll: true });
+const showConfirmModal = ref(false);
+const itemToDelete = ref(null);
+
+const confirmDelete = (id) => {
+    itemToDelete.value = id;
+    showConfirmModal.value = true;
+};
+
+const executeDelete = () => {
+    if (itemToDelete.value) {
+        router.delete(route('finance.destroy', itemToDelete.value), {
+            preserveScroll: true,
+            onSuccess: () => {
+                showConfirmModal.value = false;
+                itemToDelete.value = null;
+            }
+        });
     }
 };
 
@@ -96,7 +111,7 @@ const formatDate = (dateStr) => {
             <!-- Transactions Table -->
             <div class="glass-card animate-slide-up" style="animation-delay: 300ms">
                 <div class="px-5 py-4 border-b border-white/10">
-                    <h2 class="text-base font-semibold text-white">Transactions</h2>
+                    <h2 class="text-base font-semibold text-nexboard-on-surface">Transactions</h2>
                 </div>
 
                 <div v-if="transactions.data.length === 0" class="px-5 py-12 text-center">
@@ -119,7 +134,7 @@ const formatDate = (dateStr) => {
                         <tbody class="divide-y divide-white/[0.03]">
                             <tr v-for="tx in transactions.data" :key="tx.id" class="hover:bg-white/[0.02] transition-colors group">
                                 <td class="px-5 py-3 text-nexboard-on-surface-variant whitespace-nowrap">{{ formatDate(tx.date) }}</td>
-                                <td class="px-5 py-3 text-white">{{ tx.description }}</td>
+                                <td class="px-5 py-3 text-nexboard-on-surface">{{ tx.description }}</td>
                                 <td class="px-5 py-3 text-nexboard-on-surface-variant">{{ tx.category || '-' }}</td>
                                 <td class="px-5 py-3 text-nexboard-on-surface-variant">{{ tx.project?.name || '-' }}</td>
                                 <td class="px-5 py-3 text-right font-mono whitespace-nowrap"
@@ -129,7 +144,7 @@ const formatDate = (dateStr) => {
                                 </td>
                                 <td class="px-5 py-3">
                                     <button
-                                        @click="deleteTransaction(tx.id)"
+                                        @click="confirmDelete(tx.id)"
                                         class="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 transition-all"
                                     >
                                         <svg class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -165,10 +180,10 @@ const formatDate = (dateStr) => {
                 enter-from-class="opacity-0"
                 leave-to-class="opacity-0"
             >
-                <div v-if="showCreateModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4" @click.self="showCreateModal = false">
-                    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+                <div v-if="showCreateModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" @click="showCreateModal = false" />
                     <div class="glass-card-elevated w-full max-w-md p-6 relative animate-slide-up z-10">
-                        <h2 class="text-lg font-semibold text-white mb-4">Add Transaction</h2>
+                        <h2 class="text-lg font-semibold text-nexboard-on-surface mb-4">Add Transaction</h2>
 
                         <form @submit.prevent="submit" class="space-y-4">
                             <!-- Type Toggle -->
@@ -221,5 +236,14 @@ const formatDate = (dateStr) => {
                 </div>
             </Transition>
         </Teleport>
+        
+        <ConfirmModal
+            :show="showConfirmModal"
+            title="Delete Transaction"
+            message="Are you sure you want to delete this transaction? This action cannot be undone."
+            confirm-text="Delete Transaction"
+            @confirm="executeDelete"
+            @cancel="showConfirmModal = false"
+        />
     </AuthenticatedLayout>
 </template>

@@ -35,10 +35,18 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($projects as $projectData) {
-            $project = Project::create(array_merge($projectData, ['user_id' => $user->id]));
+            $project = Project::create(array_merge($projectData, [
+                'user_id' => $user->id,
+                'columns' => ['To Do', 'In Progress', 'Review', 'Done']
+            ]));
 
             // Create tasks for each project
-            $statuses = ['todo', 'in_progress', 'review', 'done'];
+            $statusMap = [
+                'todo' => 'To Do',
+                'in_progress' => 'In Progress',
+                'review' => 'Review',
+                'done' => 'Done',
+            ];
             $priorities = ['low', 'medium', 'high', 'urgent'];
             $taskTemplates = [
                 ['title' => 'Setup project structure', 'status' => 'done'],
@@ -54,10 +62,18 @@ class DatabaseSeeder extends Seeder
                 Task::create([
                     'project_id' => $project->id,
                     'title' => $task['title'],
-                    'description' => 'Task for ' . $project->name,
-                    'status' => $task['status'],
+                    'description' => 'Detailed description for task: ' . $task['title'],
+                    'status' => $statusMap[$task['status']],
                     'priority' => $priorities[array_rand($priorities)],
                     'order' => $i,
+                    'checklist' => [
+                        ['id' => 1, 'text' => 'Analisis Kebutuhan', 'completed' => true],
+                        ['id' => 2, 'text' => 'Design UI', 'completed' => false],
+                        ['id' => 3, 'text' => 'UML / Flowchart', 'completed' => false],
+                    ],
+                    'comments' => [
+                        ['id' => 1, 'user' => 'Admin NexBoard', 'text' => 'added this card to ' . $statusMap[$task['status']], 'date' => now()->subHours(2)->format('M d, Y, h:i A'), 'is_comment' => false],
+                    ]
                 ]);
             }
         }

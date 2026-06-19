@@ -20,11 +20,13 @@ class Project extends Model
         'deadline',
         'status',
         'budget',
+        'columns',
     ];
 
     protected $casts = [
         'deadline' => 'date',
         'budget' => 'decimal:2',
+        'columns' => 'array',
     ];
 
     public function user(): BelongsTo

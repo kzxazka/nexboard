@@ -6,8 +6,89 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @layer base {
+    :root, :root[data-theme="dark"] {
+        --color-base: 2 6 23; /* #020617 */
+        --color-surface: 11 19 38; /* #0b1326 */
+        --color-surface-dim: 11 19 38;
+        --color-surface-bright: 49 57 77; /* #31394d */
+        --color-surface-container-lowest: 6 14 32; /* #060e20 */
+        --color-surface-container-low: 19 27 46; /* #131b2e */
+        --color-surface-container: 23 31 51; /* #171f33 */
+        --color-surface-container-high: 34 42 61; /* #222a3d */
+        --color-surface-container-highest: 45 52 73; /* #2d3449 */
+
+        --color-primary: 192 193 255; /* #c0c1ff */
+        --color-primary-container: 128 131 255; /* #8083ff */
+        --color-on-primary: 16 0 169; /* #1000a9 */
+        --color-on-primary-container: 13 0 150; /* #0d0096 */
+
+        --color-secondary: 208 188 255; /* #d0bcff */
+        --color-secondary-container: 87 27 193; /* #571bc1 */
+        --color-on-secondary: 60 0 145; /* #3c0091 */
+
+        --color-on-surface: 218 226 253; /* #dae2fd */
+        --color-on-surface-variant: 199 196 215; /* #c7c4d7 */
+
+        --color-outline: 144 143 160; /* #908fa0 */
+        --color-outline-variant: 70 69 84; /* #464554 */
+    }
+
+    :root[data-theme="light"] {
+        --color-base: 248 250 252; /* #f8fafc */
+        --color-surface: 255 255 255; /* #ffffff */
+        --color-surface-dim: 241 245 249; /* #f1f5f9 */
+        --color-surface-bright: 255 255 255;
+        --color-surface-container-lowest: 255 255 255;
+        --color-surface-container-low: 248 250 252;
+        --color-surface-container: 241 245 249;
+        --color-surface-container-high: 226 232 240; /* #e2e8f0 */
+        --color-surface-container-highest: 203 213 225; /* #cbd5e1 */
+
+        --color-primary: 79 70 229; /* #4f46e5 */
+        --color-primary-container: 224 231 255; /* #e0e7ff */
+        --color-on-primary: 255 255 255;
+        --color-on-primary-container: 55 48 163; /* #3730a3 */
+
+        --color-secondary: 139 92 246; /* #8b5cf6 */
+        --color-secondary-container: 237 233 254; /* #ede9fe */
+        --color-on-secondary: 255 255 255;
+
+        --color-on-surface: 15 23 42; /* #0f172a */
+        --color-on-surface-variant: 71 85 105; /* #475569 */
+
+        --color-outline: 148 163 184; /* #94a3b8 */
+        --color-outline-variant: 203 213 225;
+    }
+
+    :root[data-theme="reading"] {
+        --color-base: 253 246 227; /* #fdf6e3 */
+        --color-surface: 238 232 213; /* #eee8d5 */
+        --color-surface-dim: 238 232 213;
+        --color-surface-bright: 253 246 227;
+        --color-surface-container-lowest: 253 246 227;
+        --color-surface-container-low: 238 232 213;
+        --color-surface-container: 230 224 204; /* #e6e0cc */
+        --color-surface-container-high: 220 214 192; /* #dcd6c0 */
+        --color-surface-container-highest: 209 202 179; /* #d1cab3 */
+
+        --color-primary: 181 137 0; /* #b58900 */
+        --color-primary-container: 253 246 227;
+        --color-on-primary: 255 255 255;
+        --color-on-primary-container: 101 76 0; /* #654c00 */
+
+        --color-secondary: 203 75 22; /* #cb4b16 */
+        --color-secondary-container: 253 246 227;
+        --color-on-secondary: 255 255 255;
+
+        --color-on-surface: 88 110 117; /* #586e75 */
+        --color-on-surface-variant: 101 123 131; /* #657b83 */
+
+        --color-outline: 147 161 161; /* #93a1a1 */
+        --color-outline-variant: 220 214 192; /* #dcd6c0 */
+    }
+
     body {
-        @apply bg-nexboard-base text-nexboard-on-surface font-sans antialiased;
+        @apply bg-nexboard-base text-nexboard-on-surface font-sans antialiased transition-colors duration-500 ease-in-out;
     }
 
     /* Custom scrollbar for dark theme */
@@ -28,21 +109,17 @@
 @layer components {
     /* Glass Card - Level 1 */
     .glass-card {
-        @apply rounded-nex-lg border border-white/10 backdrop-blur-xl;
-        background: rgba(30, 41, 59, 0.6);
+        @apply rounded-nex-lg border border-nexboard-outline-variant/30 backdrop-blur-xl bg-nexboard-surface/60;
     }
 
     /* Glass Card - Level 2 (Modals/Popovers) */
     .glass-card-elevated {
-        @apply rounded-nex-lg border border-white/10 backdrop-blur-2xl;
-        background: rgba(30, 41, 59, 0.9);
-        box-shadow: 0 0 30px rgba(99, 102, 241, 0.1);
+        @apply rounded-nex-lg border border-nexboard-outline-variant/50 backdrop-blur-2xl bg-nexboard-surface/90 shadow-2xl;
     }
 
     /* Sidebar glass */
     .glass-sidebar {
-        @apply border-r border-white/10 backdrop-blur-xl;
-        background: rgba(30, 41, 59, 0.6);
+        @apply border-r border-nexboard-outline-variant/30 backdrop-blur-xl bg-nexboard-surface/60;
     }
 
     /* Status badges */
@@ -104,10 +181,9 @@
 
     /* Input fields */
     .input-dark {
-        @apply w-full rounded-nex border border-nexboard-outline-variant px-3 py-2 text-sm text-nexboard-on-surface placeholder-nexboard-on-surface-variant
+        @apply w-full rounded-nex border border-nexboard-outline-variant bg-nexboard-surface px-3 py-2 text-sm text-nexboard-on-surface placeholder-nexboard-on-surface-variant
                transition-all duration-200
                focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none;
-        background: rgba(0, 0, 0, 0.2);
     }
     .input-dark option {
         @apply bg-nexboard-surface text-nexboard-on-surface;

@@ -27,7 +27,7 @@ class ProjectController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'client_name' => 'required|string|max:255',
+            'client_name' => 'nullable|string|max:255',
             'client_email' => 'nullable|email|max:255',
             'description' => 'nullable|string',
             'deadline' => 'nullable|date',
@@ -36,8 +36,16 @@ class ProjectController extends Controller
         ]);
 
         $validated['user_id'] = Auth::id();
+        $validated['client_name'] = $validated['client_name'] ?? 'Internal';
+        
+        // Default boards have 4 default columns: To Do, In Progress, Review, Done
+        $validated['columns'] = ['To Do', 'In Progress', 'Review', 'Done'];
 
-        Project::create($validated);
+        $project = Project::create($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json($project);
+        }
 
         return redirect()->back()->with('success', 'Project created successfully.');
     }
@@ -48,16 +56,25 @@ class ProjectController extends Controller
 
         $project->load(['tasks' => fn($q) => $q->orderBy('order')]);
 
-        $columns = [
-            'todo' => $project->tasks->where('status', 'todo')->values(),
-            'in_progress' => $project->tasks->where('status', 'in_progress')->values(),
-            'review' => $project->tasks->where('status', 'review')->values(),
-            'done' => $project->tasks->where('status', 'done')->values(),
-        ];
+        $columnNames = $project->columns ?? ['To Do', 'In Progress', 'Review', 'Done'];
+
+        $tasks = $project->tasks;
+        $columns = [];
+        foreach ($columnNames as $colName) {
+            $columns[$colName] = $tasks->filter(function($task) use ($colName) {
+                $status = $task->status;
+                if (strtolower($status) === 'todo' && strtolower($colName) === 'to do') return true;
+                if (strtolower($status) === 'in_progress' && strtolower($colName) === 'in progress') return true;
+                return strtolower($status) === strtolower($colName);
+            })->values();
+        }
+
+        $projects = Project::where('user_id', Auth::id())->select('id', 'name')->latest()->get();
 
         return Inertia::render('Projects/Show', [
             'project' => $project,
-            'columns' => $columns,
+            'columns' => (object)$columns,
+            'projects' => $projects,
         ]);
     }
 
@@ -73,9 +90,29 @@ class ProjectController extends Controller
             'deadline' => 'nullable|date',
             'status' => 'nullable|in:planning,in_progress,review,completed,on_hold',
             'budget' => 'nullable|numeric|min:0',
+            'columns' => 'nullable|array',
         ]);
 
+        if ($request->has('columns') && $project->columns) {
+            $oldColumns = $project->columns;
+            $newColumns = $validated['columns'] ?? [];
+
+            if (count($oldColumns) === count($newColumns)) {
+                for ($i = 0; $i < count($oldColumns); $i++) {
+                    if ($oldColumns[$i] !== $newColumns[$i]) {
+                        Task::where('project_id', $project->id)
+                            ->where('status', $oldColumns[$i])
+                            ->update(['status' => $newColumns[$i]]);
+                    }
+                }
+            }
+        }
+
         $project->update($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json($project->fresh());
+        }
 
         return redirect()->back()->with('success', 'Project updated successfully.');
     }

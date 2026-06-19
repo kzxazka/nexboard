@@ -582,6 +582,16 @@ const handleResize = () => {
     drawScene();
 };
 
+const zoomIn = () => {
+    zoom.value = Math.min(zoom.value + 0.1, 3);
+    drawScene();
+};
+
+const zoomOut = () => {
+    zoom.value = Math.max(zoom.value - 0.1, 0.1);
+    drawScene();
+};
+
 onMounted(() => {
     const canvas = canvasRef.value;
     if (!canvas) return;
@@ -621,245 +631,274 @@ watch([activeTool, strokeColor, fillColor, fillStyle, strokeWidth, strokeStyle, 
 
 <template>
     <Head :title="sketch.title" />
-    <div class="h-screen flex flex-col bg-nexboard-base overflow-hidden select-none font-sans">
+    <div class="h-screen w-screen relative bg-[#121212] overflow-hidden select-none font-sans">
         
-        <!-- TOP TOOLBAR -->
-        <div class="h-16 flex items-center justify-between px-6 border-b border-white/10 bg-nexboard-surface/80 backdrop-blur-xl shrink-0 z-20">
-            <div class="flex items-center gap-3">
-                <Link :href="route('sketches.index')" class="p-2 rounded-xl text-nexboard-on-surface-variant hover:text-white hover:bg-white/5 transition-colors">
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-                    </svg>
-                </Link>
-                <div>
-                    <span class="text-sm font-semibold text-white tracking-wide block leading-none">{{ sketch.title }}</span>
-                    <span class="text-[11px] text-nexboard-on-surface-variant mt-1 block">{{ sketch.project?.name || 'No Project' }}</span>
-                </div>
-            </div>
+        <!-- CANVAS DRAWING AREA -->
+        <canvas
+            ref="canvasRef"
+            @mousedown="handleMouseDown"
+            @mousemove="handleMouseMove"
+            @mouseup="handleMouseUp"
+            @mouseleave="handleMouseUp"
+            @touchstart="handleMouseDown"
+            @touchmove="handleMouseMove"
+            @touchend="handleMouseUp"
+            @wheel="handleWheel"
+            class="absolute inset-0 w-full h-full block z-0"
+            :class="activeTool === 'hand' ? (isSpacePressed ? 'cursor-grabbing' : 'cursor-grab') : activeTool === 'text' ? 'cursor-text' : 'cursor-crosshair'"
+        />
 
-            <!-- Hand-drawn Toolbar (Excalidraw Center Toolbar Style) -->
-            <div class="flex items-center gap-1.5 bg-nexboard-surface-container-low/90 border border-white/10 rounded-2xl px-3 py-1.5 shadow-xl">
-                <button
-                    v-for="tool in tools"
-                    :key="tool.id"
-                    @click="activeTool = tool.id"
-                    :class="activeTool === tool.id ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'text-nexboard-on-surface-variant hover:bg-white/5 hover:text-white'"
-                    class="p-2 rounded-xl transition-all duration-200"
-                    :title="tool.label"
-                >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" :d="tool.icon" />
-                    </svg>
-                </button>
-            </div>
+        <!-- Dynamic Floating Input for Text Tool -->
+        <input
+            v-if="textInput.show"
+            ref="textInputRef"
+            v-model="textInput.text"
+            @blur="finishTextInput"
+            @keyup.enter="finishTextInput"
+            @keyup.esc="cancelTextInput"
+            :style="{
+                position: 'absolute',
+                left: `${textInput.x}px`,
+                top: `${textInput.y}px`,
+                font: `${strokeWidth * 6 + 14}px 'Architects Daughter', sans-serif`,
+                color: strokeColor,
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                caretColor: strokeColor,
+                zIndex: 50
+            }"
+            class="p-1 border-none focus:outline-none focus:ring-0"
+            placeholder="Type text..."
+        />
 
-            <!-- Right Controls: Save, Export, Status indicators -->
-            <div class="flex items-center gap-3">
-                <span class="text-xs text-nexboard-on-surface-variant">
-                    <span v-if="saving" class="flex items-center gap-1.5 text-indigo-400">
-                        <svg class="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        Saving...
-                    </span>
-                    <span v-else-if="lastSaved" class="text-emerald-400">Saved at {{ lastSaved }}</span>
-                    <span v-else>All changes local</span>
-                </span>
-                <button @click="handleUndo" class="p-2 rounded-xl text-nexboard-on-surface-variant hover:text-white hover:bg-white/5" title="Undo (Ctrl+Z)">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" /></svg>
-                </button>
-                <button @click="handleRedo" class="p-2 rounded-xl text-nexboard-on-surface-variant hover:text-white hover:bg-white/5" title="Redo (Ctrl+Y)">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3" /></svg>
-                </button>
-                <button @click="exportPNG" class="btn-secondary text-xs py-1.5 px-3">Export PNG</button>
-                <button @click="saveCanvas" :disabled="saving" class="btn-primary text-xs py-1.5 px-3">
-                    Manual Save
-                </button>
-            </div>
-        </div>
-
-        <!-- MAIN LAYOUT AREA -->
-        <div class="flex-1 flex relative overflow-hidden">
+        <!-- FLOATING UI LAYER -->
+        <div class="absolute inset-0 pointer-events-none z-10 p-4 flex flex-col justify-between">
             
-            <!-- LEFT FLOATING OPTIONS PANEL (Excalidraw Sidebar Look) -->
-            <div class="absolute left-6 top-6 bottom-6 w-64 bg-nexboard-surface-container-low/90 border border-white/10 rounded-2xl p-4 shadow-2xl flex flex-col gap-4 overflow-y-auto z-10 backdrop-blur-md">
+            <!-- TOP ROW -->
+            <div class="flex items-start justify-between w-full relative">
                 
-                <!-- STROKE COLOR -->
-                <div>
-                    <label class="text-[10px] font-bold uppercase tracking-wider text-nexboard-on-surface-variant block mb-2">Stroke Color</label>
-                    <div class="flex flex-wrap gap-1.5">
-                        <button
-                            v-for="c in colors"
-                            :key="c"
-                            @click="strokeColor = c"
-                            :class="strokeColor === c ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-nexboard-surface-container-low' : 'hover:scale-105'"
-                            :style="{ backgroundColor: c }"
-                            class="w-6 h-6 rounded-lg transition-all border border-white/15"
-                        />
-                    </div>
-                </div>
-
-                <!-- FILL COLOR -->
-                <div>
-                    <label class="text-[10px] font-bold uppercase tracking-wider text-nexboard-on-surface-variant block mb-2">Background Fill</label>
-                    <div class="flex flex-wrap gap-1.5">
-                        <button
-                            v-for="fc in fillColors"
-                            :key="fc"
-                            @click="fillColor = fc"
-                            :class="fillColor === fc ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-nexboard-surface-container-low' : 'hover:scale-105'"
-                            :style="{ backgroundColor: fc === 'none' ? 'transparent' : fc }"
-                            class="w-6 h-6 rounded-lg transition-all border border-white/15 relative overflow-hidden"
-                            title="Fill style color"
-                        >
-                            <span v-if="fc === 'none'" class="absolute inset-0 flex items-center justify-center text-red-500 text-xs font-bold leading-none select-none">/</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- FILL STYLE -->
-                <div v-if="fillColor !== 'none'">
-                    <label class="text-[10px] font-bold uppercase tracking-wider text-nexboard-on-surface-variant block mb-2">Fill Style</label>
-                    <div class="grid grid-cols-3 gap-1 bg-white/5 p-1 rounded-xl">
-                        <button
-                            v-for="style in ['hachure', 'solid', 'cross-hatch']"
-                            :key="style"
-                            @click="fillStyle = style"
-                            :class="fillStyle === style ? 'bg-indigo-500 text-white font-medium shadow-md' : 'text-nexboard-on-surface-variant hover:text-white'"
-                            class="text-[10px] py-1 rounded-lg capitalize transition-all"
-                        >
-                            {{ style === 'hachure' ? 'Sketchy' : style === 'cross-hatch' ? 'Hatch' : 'Solid' }}
-                        </button>
-                    </div>
-                </div>
-
-                <!-- STROKE WIDTH -->
-                <div>
-                    <label class="text-[10px] font-bold uppercase tracking-wider text-nexboard-on-surface-variant block mb-2">Stroke Width</label>
-                    <div class="grid grid-cols-3 gap-1 bg-white/5 p-1 rounded-xl text-center">
-                        <button
-                            v-for="w in [1, 2, 5]"
-                            :key="w"
-                            @click="strokeWidth = w"
-                            :class="strokeWidth === w ? 'bg-indigo-500 text-white font-medium shadow-md' : 'text-nexboard-on-surface-variant hover:text-white'"
-                            class="text-[10px] py-1 rounded-lg transition-all"
-                        >
-                            {{ w === 1 ? 'Thin' : w === 2 ? 'Medium' : 'Bold' }}
-                        </button>
-                    </div>
-                </div>
-
-                <!-- STROKE STYLE -->
-                <div>
-                    <label class="text-[10px] font-bold uppercase tracking-wider text-nexboard-on-surface-variant block mb-2">Stroke Style</label>
-                    <div class="grid grid-cols-3 gap-1 bg-white/5 p-1 rounded-xl text-center">
-                        <button
-                            v-for="style in ['solid', 'dashed', 'dotted']"
-                            :key="style"
-                            @click="strokeStyle = style"
-                            :class="strokeStyle === style ? 'bg-indigo-500 text-white font-medium shadow-md' : 'text-nexboard-on-surface-variant hover:text-white'"
-                            class="text-[10px] py-1 rounded-lg capitalize transition-all"
-                        >
-                            {{ style }}
-                        </button>
-                    </div>
-                </div>
-
-                <!-- SLOPIUNESS / ROUGHNESS (EXCALIDRAW STYLE) -->
-                <div>
-                    <label class="text-[10px] font-bold uppercase tracking-wider text-nexboard-on-surface-variant block mb-2">Sloppiness (Hand-drawn)</label>
-                    <div class="grid grid-cols-3 gap-1 bg-white/5 p-1 rounded-xl text-center">
-                        <button
-                            v-for="r in [0, 1.2, 2.5]"
-                            :key="r"
-                            @click="roughness = r"
-                            :class="roughness === r ? 'bg-indigo-500 text-white font-medium shadow-md' : 'text-nexboard-on-surface-variant hover:text-white'"
-                            class="text-[10px] py-1 rounded-lg transition-all"
-                        >
-                            {{ r === 0 ? 'Architect' : r === 1.2 ? 'Artist' : 'Cartoon' }}
-                        </button>
-                    </div>
-                </div>
-
-                <div class="h-px bg-white/10 my-2" />
-
-                <!-- GRID TOGGLE & CLEAR -->
-                <div class="flex flex-col gap-2">
-                    <button
-                        @click="showGrid = !showGrid"
-                        :class="showGrid ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/30' : 'text-nexboard-on-surface-variant border border-white/10'"
-                        class="w-full py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
-                    >
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+                <!-- Top Left: Back & Title -->
+                <div class="pointer-events-auto flex items-center gap-3 bg-[#232329]/95 border border-white/10 rounded-xl px-3 py-2 shadow-lg backdrop-blur-xl">
+                    <Link :href="route('sketches.index')" class="p-1.5 hover:bg-white/10 rounded-lg text-slate-300 hover:text-nexboard-on-surface transition-colors flex items-center gap-1.5 group" title="Back to Sketches">
+                        <svg class="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                         </svg>
-                        Grid Pattern
+                        <span class="text-[11px] font-semibold tracking-wide pr-1">Back</span>
+                    </Link>
+                    <div class="w-px h-6 bg-white/10"></div>
+                    <div class="flex flex-col pr-2">
+                        <span class="text-sm font-semibold text-nexboard-on-surface tracking-wide block leading-none">{{ sketch.title }}</span>
+                        <span class="text-[10px] text-slate-400 mt-1 block leading-none">{{ sketch.project?.name || 'Personal Canvas' }}</span>
+                    </div>
+                </div>
+
+                <!-- Top Center: Main Tools Palette -->
+                <div class="absolute left-1/2 -translate-x-1/2 pointer-events-auto flex items-center gap-1 bg-[#232329]/95 border border-white/10 rounded-xl px-2 py-1.5 shadow-lg backdrop-blur-xl">
+                    <button
+                        v-for="(tool, index) in tools"
+                        :key="tool.id"
+                        @click="activeTool = tool.id"
+                        :class="[
+                            'p-2 rounded-lg transition-all duration-200 group relative',
+                            activeTool === tool.id ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-300 hover:bg-white/5 hover:text-nexboard-on-surface'
+                        ]"
+                    >
+                        <svg class="w-[18px] h-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" :d="tool.icon" />
+                        </svg>
+                        
+                        <!-- Tooltip -->
+                        <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/80 text-nexboard-on-surface text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                            {{ tool.label }} <span class="text-slate-400 ml-1">{{ index + 1 === 10 ? '0' : index + 1 }}</span>
+                        </span>
                     </button>
-                    <button @click="clearCanvas" class="w-full border border-red-500/20 text-red-400 hover:bg-red-500/10 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                        Clear Canvas
-                    </button>
+                </div>
+
+                <!-- Top Right: Export & Save -->
+                <div class="pointer-events-auto flex items-center gap-2">
+                    <div v-if="saving" class="bg-[#232329]/95 border border-white/10 rounded-xl px-3 py-2 flex items-center gap-2 shadow-lg backdrop-blur-xl">
+                        <svg class="animate-spin h-3.5 w-3.5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <span class="text-xs text-indigo-400 font-medium">Saving...</span>
+                    </div>
+                    <div v-else-if="lastSaved" class="bg-[#232329]/95 border border-white/10 rounded-xl px-3 py-2 flex items-center shadow-lg backdrop-blur-xl">
+                        <span class="text-xs text-slate-400">Saved</span>
+                    </div>
+
+                    <div class="bg-[#232329]/95 border border-white/10 rounded-xl p-1 flex items-center shadow-lg backdrop-blur-xl">
+                        <button @click="exportPNG" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 hover:text-nexboard-on-surface hover:bg-white/5 transition-colors">
+                            Export
+                        </button>
+                        <div class="w-px h-4 bg-white/10 mx-1"></div>
+                        <button @click="saveCanvas" :disabled="saving" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-500 text-nexboard-on-surface hover:bg-indigo-600 transition-colors">
+                            Save
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            <!-- CANVAS DRAWING AREA -->
-            <div class="flex-1 relative overflow-hidden bg-nexboard-base cursor-crosshair h-full w-full">
-                
-                <!-- Active Interactive Canvas -->
-                <canvas
-                    ref="canvasRef"
-                    @mousedown="handleMouseDown"
-                    @mousemove="handleMouseMove"
-                    @mouseup="handleMouseUp"
-                    @mouseleave="handleMouseUp"
-                    @touchstart="handleMouseDown"
-                    @touchmove="handleMouseMove"
-                    @touchend="handleMouseUp"
-                    @wheel="handleWheel"
-                    class="absolute inset-0 w-full h-full block"
-                />
-
-                <!-- Dynamic Floating Input for Text Tool -->
-                <input
-                    v-if="textInput.show"
-                    ref="textInputRef"
-                    v-model="textInput.text"
-                    @blur="finishTextInput"
-                    @keyup.enter="finishTextInput"
-                    @keyup.esc="cancelTextInput"
-                    :style="{
-                        position: 'absolute',
-                        left: `${textInput.x}px`,
-                        top: `${textInput.y}px`,
-                        font: `${strokeWidth * 6 + 14}px 'Architects Daughter', sans-serif`,
-                        color: strokeColor,
-                        background: 'transparent',
-                        border: 'none',
-                        outline: 'none',
-                        caretColor: strokeColor,
-                        zIndex: 50
-                    }"
-                    class="p-1 border-none focus:outline-none focus:ring-0"
-                    placeholder="Type text..."
-                />
-
-                <!-- Navigation Guide overlay -->
-                <div class="absolute right-6 bottom-6 flex flex-col gap-2 items-end z-10 pointer-events-none select-none text-[11px] text-nexboard-on-surface-variant/80">
-                    <div class="bg-black/45 border border-white/5 px-3 py-1.5 rounded-xl shadow-lg pointer-events-auto flex items-center gap-4">
-                        <div class="flex items-center gap-1">
-                            <span class="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">Space + Drag</span>
-                            <span>Pan</span>
-                        </div>
-                        <div class="w-px h-3 bg-white/10" />
-                        <div class="flex items-center gap-1">
-                            <span class="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">Wheel</span>
-                            <span>Zoom ({{ Math.round(zoom * 100) }}%)</span>
-                        </div>
-                        <div class="w-px h-3 bg-white/10" />
-                        <div class="flex items-center gap-1">
-                            <span class="px-1.5 py-0.5 rounded bg-white/10 text-white font-mono text-[10px]">Del / Bksp</span>
-                            <span>Delete</span>
+            <!-- MIDDLE ROW: Properties Panel -->
+            <div class="flex-1 w-full relative mt-4">
+                <div v-if="activeTool !== 'hand' && activeTool !== 'select'" class="pointer-events-auto absolute left-0 top-0 w-52 bg-[#232329]/95 border border-white/10 rounded-xl p-4 shadow-xl backdrop-blur-xl flex flex-col gap-4 overflow-y-auto max-h-full custom-scrollbar">
+                    
+                    <!-- STROKE COLOR -->
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 block mb-2">Stroke</label>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button
+                                v-for="c in colors"
+                                :key="c"
+                                @click="strokeColor = c"
+                                :class="strokeColor === c ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-[#232329]' : 'hover:scale-110'"
+                                :style="{ backgroundColor: c }"
+                                class="w-5 h-5 rounded transition-all border border-white/15"
+                            />
                         </div>
                     </div>
+
+                    <!-- FILL COLOR -->
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 block mb-2">Background</label>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button
+                                v-for="fc in fillColors"
+                                :key="fc"
+                                @click="fillColor = fc"
+                                :class="fillColor === fc ? 'ring-2 ring-indigo-500 ring-offset-2 ring-offset-[#232329]' : 'hover:scale-110'"
+                                :style="{ backgroundColor: fc === 'none' ? 'transparent' : fc }"
+                                class="w-5 h-5 rounded transition-all border border-white/15 relative flex items-center justify-center"
+                            >
+                                <span v-if="fc === 'none'" class="text-red-500 text-xs font-bold leading-none -rotate-45">/</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- FILL STYLE -->
+                    <div v-if="fillColor !== 'none'">
+                        <label class="text-[10px] font-bold text-slate-400 block mb-2">Fill</label>
+                        <div class="grid grid-cols-3 gap-1 bg-black/20 p-1 rounded-lg">
+                            <button
+                                v-for="style in ['hachure', 'solid', 'cross-hatch']"
+                                :key="style"
+                                @click="fillStyle = style"
+                                :class="fillStyle === style ? 'bg-indigo-500/20 text-indigo-400 shadow-sm' : 'text-slate-400 hover:text-nexboard-on-surface hover:bg-white/5'"
+                                class="text-[10px] py-1.5 rounded-md capitalize transition-all"
+                            >
+                                {{ style === 'hachure' ? 'Sketch' : style === 'cross-hatch' ? 'Hatch' : 'Solid' }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- STROKE WIDTH -->
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 block mb-2">Stroke width</label>
+                        <div class="grid grid-cols-3 gap-1 bg-black/20 p-1 rounded-lg text-center">
+                            <button
+                                v-for="w in [1, 2, 5]"
+                                :key="w"
+                                @click="strokeWidth = w"
+                                :class="strokeWidth === w ? 'bg-indigo-500/20 text-indigo-400 shadow-sm' : 'text-slate-400 hover:text-nexboard-on-surface hover:bg-white/5'"
+                                class="text-[10px] py-1.5 rounded-md transition-all flex justify-center items-center"
+                            >
+                                <div class="bg-current rounded-full" :style="{ width: w*2+'px', height: w*2+'px' }"></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- STROKE STYLE -->
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 block mb-2">Stroke style</label>
+                        <div class="grid grid-cols-3 gap-1 bg-black/20 p-1 rounded-lg text-center">
+                            <button
+                                v-for="style in ['solid', 'dashed', 'dotted']"
+                                :key="style"
+                                @click="strokeStyle = style"
+                                :class="strokeStyle === style ? 'bg-indigo-500/20 text-indigo-400 shadow-sm' : 'text-slate-400 hover:text-nexboard-on-surface hover:bg-white/5'"
+                                class="text-[10px] py-1.5 rounded-md transition-all flex justify-center items-center"
+                            >
+                                <div v-if="style === 'solid'" class="w-4 h-0.5 bg-current rounded-full"></div>
+                                <div v-else-if="style === 'dashed'" class="w-4 h-0.5 border-t-2 border-dashed border-current"></div>
+                                <div v-else class="w-4 h-0.5 border-t-2 border-dotted border-current"></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- SLOPIUNESS -->
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 block mb-2">Sloppiness</label>
+                        <div class="grid grid-cols-3 gap-1 bg-black/20 p-1 rounded-lg text-center">
+                            <button
+                                v-for="(r, i) in [0, 1.2, 2.5]"
+                                :key="r"
+                                @click="roughness = r"
+                                :class="roughness === r ? 'bg-indigo-500/20 text-indigo-400 shadow-sm' : 'text-slate-400 hover:text-nexboard-on-surface hover:bg-white/5'"
+                                class="text-[10px] py-1.5 rounded-md transition-all flex justify-center items-center"
+                                :title="r === 0 ? 'Architect' : r === 1.2 ? 'Artist' : 'Cartoon'"
+                            >
+                                <svg v-if="i === 0" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg>
+                                <svg v-else-if="i === 1" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ACTIONS -->
+                    <div class="mt-2 space-y-1">
+                        <button
+                            @click="showGrid = !showGrid"
+                            :class="showGrid ? 'bg-indigo-500/10 text-indigo-400' : 'text-slate-300 hover:bg-white/5'"
+                            class="w-full py-1.5 rounded-lg text-[10px] font-semibold flex items-center gap-2 px-2 transition-colors"
+                        >
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+                            </svg>
+                            Show Grid
+                        </button>
+                        <button @click="clearCanvas" class="w-full py-1.5 rounded-lg text-[10px] font-semibold flex items-center gap-2 px-2 text-red-400 hover:bg-red-500/10 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                            Clear Canvas
+                        </button>
+                    </div>
                 </div>
+            </div>
+
+            <!-- BOTTOM ROW -->
+            <div class="flex items-end justify-between w-full mt-auto">
+                
+                <!-- Bottom Left: Zoom and Undo/Redo -->
+                <div class="pointer-events-auto flex items-center gap-3">
+                    <div class="flex items-center bg-[#232329]/95 border border-white/10 rounded-xl p-1 shadow-lg backdrop-blur-xl">
+                        <button @click="zoomOut" class="p-1 hover:bg-white/10 rounded text-slate-300 hover:text-nexboard-on-surface transition-colors" title="Zoom Out">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" /></svg>
+                        </button>
+                        <span class="text-xs text-nexboard-on-surface font-mono w-12 text-center" @click="zoom = 1">{{ Math.round(zoom * 100) }}%</span>
+                        <button @click="zoomIn" class="p-1 hover:bg-white/10 rounded text-slate-300 hover:text-nexboard-on-surface transition-colors" title="Zoom In">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-1 bg-[#232329]/95 border border-white/10 rounded-xl p-1 shadow-lg backdrop-blur-xl">
+                        <button @click="handleUndo" class="p-1.5 hover:bg-white/10 rounded text-slate-300 hover:text-nexboard-on-surface transition-colors" title="Undo (Ctrl+Z)">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
+                        </button>
+                        <button @click="handleRedo" class="p-1.5 hover:bg-white/10 rounded text-slate-300 hover:text-nexboard-on-surface transition-colors" title="Redo (Ctrl+Y)">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 10h-10a8 8 0 00-8 8v2M21 10l-6 6m6-6l-6-6" /></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bottom Right: Helpers -->
+                <div class="pointer-events-auto bg-[#232329]/95 border border-white/10 rounded-xl p-2 shadow-lg backdrop-blur-xl flex items-center gap-4 text-[10px] text-slate-400">
+                    <div class="flex items-center gap-1.5">
+                        <span class="px-1.5 py-0.5 rounded bg-white/10 text-slate-300 font-mono">Space</span>
+                        <span>+ Drag to Pan</span>
+                    </div>
+                    <div class="w-px h-3 bg-white/10"></div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="px-1.5 py-0.5 rounded bg-white/10 text-slate-300 font-mono">Wheel</span>
+                        <span>to Zoom</span>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
@@ -867,4 +906,19 @@ watch([activeTool, strokeColor, fillColor, fillStyle, strokeWidth, strokeStyle, 
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
+
+/* Custom scrollbar for Excalidraw options panel */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
 </style>

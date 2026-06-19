@@ -18,11 +18,15 @@ class Task extends Model
         'priority',
         'order',
         'due_date',
+        'checklist',
+        'comments',
     ];
 
     protected $casts = [
         'due_date' => 'date',
         'order' => 'integer',
+        'checklist' => 'array',
+        'comments' => 'array',
     ];
 
     public function project(): BelongsTo

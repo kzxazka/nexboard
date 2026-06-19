@@ -13,17 +13,26 @@ class TaskController extends Controller
             'project_id' => 'required|exists:projects,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'status' => 'nullable|in:todo,in_progress,review,done',
+            'status' => 'required|string',
             'priority' => 'nullable|in:low,medium,high,urgent',
             'due_date' => 'nullable|date',
+            'checklist' => 'nullable|array',
+            'comments' => 'nullable|array',
         ]);
 
         // Set default order to last position
         $maxOrder = Task::where('project_id', $validated['project_id'])
-            ->where('status', $validated['status'] ?? 'todo')
+            ->where('status', $validated['status'])
             ->max('order') ?? 0;
 
         $validated['order'] = $maxOrder + 1;
+
+        if (!isset($validated['checklist'])) {
+            $validated['checklist'] = [];
+        }
+        if (!isset($validated['comments'])) {
+            $validated['comments'] = [];
+        }
 
         $task = Task::create($validated);
 
@@ -39,12 +48,18 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
-            'status' => 'nullable|in:todo,in_progress,review,done',
+            'status' => 'nullable|string',
             'priority' => 'nullable|in:low,medium,high,urgent',
             'due_date' => 'nullable|date',
+            'checklist' => 'nullable|array',
+            'comments' => 'nullable|array',
         ]);
 
         $task->update($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json($task->fresh());
+        }
 
         return redirect()->back()->with('success', 'Task updated successfully.');
     }
@@ -57,7 +72,7 @@ class TaskController extends Controller
         $validated = $request->validate([
             'tasks' => 'required|array',
             'tasks.*.id' => 'required|exists:tasks,id',
-            'tasks.*.status' => 'required|in:todo,in_progress,review,done',
+            'tasks.*.status' => 'required|string',
             'tasks.*.order' => 'required|integer',
         ]);
 

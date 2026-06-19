@@ -21,6 +21,7 @@ return new class extends Migration
             $table->date('deadline')->nullable();
             $table->enum('status', ['planning', 'in_progress', 'review', 'completed', 'on_hold'])->default('planning');
             $table->decimal('budget', 12, 2)->nullable();
+            $table->json('columns')->nullable();
             $table->timestamps();
         });
     }

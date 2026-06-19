@@ -16,10 +16,12 @@ return new class extends Migration
             $table->foreignId('project_id')->constrained()->cascadeOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->enum('status', ['todo', 'in_progress', 'review', 'done'])->default('todo');
+            $table->string('status')->default('To Do');
             $table->enum('priority', ['low', 'medium', 'high', 'urgent'])->default('medium');
             $table->integer('order')->default(0);
             $table->date('due_date')->nullable();
+            $table->json('checklist')->nullable();
+            $table->json('comments')->nullable();
             $table->timestamps();
         });
     }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FinanceController;
+use App\Http\Controllers\NoteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SketchController;
@@ -10,7 +11,10 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome');
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+    ]);
 });
 
 // Authenticated routes
@@ -27,6 +31,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
     Route::post('/tasks/update-positions', [TaskController::class, 'updatePositions'])->name('tasks.updatePositions');
 
+    // Notes / Brainstorming
+    Route::resource('notes', NoteController::class)->except(['create', 'edit']);
+
     // Sketches / Whiteboard
     Route::resource('sketches', SketchController::class)->except(['create', 'edit', 'update']);
     Route::post('/sketches/{sketch}/save-canvas', [SketchController::class, 'saveCanvas'])->name('sketches.saveCanvas');
@@ -36,6 +43,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/finance', [FinanceController::class, 'store'])->name('finance.store');
     Route::put('/finance/{transaction}', [FinanceController::class, 'update'])->name('finance.update');
     Route::delete('/finance/{transaction}', [FinanceController::class, 'destroy'])->name('finance.destroy');
+
+    // Notifications
+    Route::post('/notifications/mark-all-read', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.markAllRead');
+    Route::post('/notifications/{id}/mark-read', [\App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markRead');
 });
 
 // Profile

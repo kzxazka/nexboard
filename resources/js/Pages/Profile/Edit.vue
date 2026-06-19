@@ -20,18 +20,15 @@ defineProps({
 
     <AuthenticatedLayout>
         <template #header>
-            <h2
-                class="text-xl font-semibold leading-tight text-gray-800"
-            >
-                Profile
-            </h2>
+            <div>
+                <h1 class="text-xl font-semibold text-nexboard-on-surface">Profile Settings</h1>
+                <p class="text-sm text-nexboard-on-surface-variant mt-0.5">Manage your account details and preferences</p>
+            </div>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
-                <div
-                    class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
-                >
+        <div class="page-transition">
+            <div class="mx-auto space-y-6">
+                <div class="glass-card p-6 sm:p-8 animate-slide-up" style="animation-delay: 0ms">
                     <UpdateProfileInformationForm
                         :must-verify-email="mustVerifyEmail"
                         :status="status"
@@ -39,15 +36,11 @@ defineProps({
                     />
                 </div>
 
-                <div
-                    class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
-                >
+                <div class="glass-card p-6 sm:p-8 animate-slide-up" style="animation-delay: 50ms">
                     <UpdatePasswordForm class="max-w-xl" />
                 </div>
 
-                <div
-                    class="bg-white p-4 shadow sm:rounded-lg sm:p-8"
-                >
+                <div class="glass-card p-6 sm:p-8 border-red-500/20 animate-slide-up" style="animation-delay: 100ms">
                     <DeleteUserForm class="max-w-xl" />
                 </div>
             </div>

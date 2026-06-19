@@ -21,34 +21,34 @@ export default {
                 // NexBoard Design System Colors
                 nexboard: {
                     // Surfaces
-                    'base': '#020617',
-                    'surface': '#0b1326',
-                    'surface-dim': '#0b1326',
-                    'surface-bright': '#31394d',
-                    'surface-container-lowest': '#060e20',
-                    'surface-container-low': '#131b2e',
-                    'surface-container': '#171f33',
-                    'surface-container-high': '#222a3d',
-                    'surface-container-highest': '#2d3449',
+                    'base': 'rgb(var(--color-base) / <alpha-value>)',
+                    'surface': 'rgb(var(--color-surface) / <alpha-value>)',
+                    'surface-dim': 'rgb(var(--color-surface-dim) / <alpha-value>)',
+                    'surface-bright': 'rgb(var(--color-surface-bright) / <alpha-value>)',
+                    'surface-container-lowest': 'rgb(var(--color-surface-container-lowest) / <alpha-value>)',
+                    'surface-container-low': 'rgb(var(--color-surface-container-low) / <alpha-value>)',
+                    'surface-container': 'rgb(var(--color-surface-container) / <alpha-value>)',
+                    'surface-container-high': 'rgb(var(--color-surface-container-high) / <alpha-value>)',
+                    'surface-container-highest': 'rgb(var(--color-surface-container-highest) / <alpha-value>)',
 
                     // Primary
-                    'primary': '#c0c1ff',
-                    'primary-container': '#8083ff',
-                    'on-primary': '#1000a9',
-                    'on-primary-container': '#0d0096',
+                    'primary': 'rgb(var(--color-primary) / <alpha-value>)',
+                    'primary-container': 'rgb(var(--color-primary-container) / <alpha-value>)',
+                    'on-primary': 'rgb(var(--color-on-primary) / <alpha-value>)',
+                    'on-primary-container': 'rgb(var(--color-on-primary-container) / <alpha-value>)',
 
                     // Secondary
-                    'secondary': '#d0bcff',
-                    'secondary-container': '#571bc1',
-                    'on-secondary': '#3c0091',
+                    'secondary': 'rgb(var(--color-secondary) / <alpha-value>)',
+                    'secondary-container': 'rgb(var(--color-secondary-container) / <alpha-value>)',
+                    'on-secondary': 'rgb(var(--color-on-secondary) / <alpha-value>)',
 
                     // Text
-                    'on-surface': '#dae2fd',
-                    'on-surface-variant': '#c7c4d7',
+                    'on-surface': 'rgb(var(--color-on-surface) / <alpha-value>)',
+                    'on-surface-variant': 'rgb(var(--color-on-surface-variant) / <alpha-value>)',
 
                     // Outline
-                    'outline': '#908fa0',
-                    'outline-variant': '#464554',
+                    'outline': 'rgb(var(--color-outline) / <alpha-value>)',
+                    'outline-variant': 'rgb(var(--color-outline-variant) / <alpha-value>)',
 
                     // Status
                     'success': '#10B981',
@@ -79,6 +79,8 @@ export default {
                 'slide-up': 'slideUp 0.4s ease-out',
                 'slide-in-left': 'slideInLeft 0.3s ease-out',
                 'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+                'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                'gradient': 'gradient 8s ease infinite',
             },
             keyframes: {
                 fadeIn: {
@@ -96,6 +98,10 @@ export default {
                 pulseGlow: {
                     '0%, 100%': { boxShadow: '0 0 5px rgba(99, 102, 241, 0.3)' },
                     '50%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.6)' },
+                },
+                gradient: {
+                    '0%, 100%': { backgroundPosition: '0% 50%' },
+                    '50%': { backgroundPosition: '100% 50%' },
                 },
             },
         },
