@@ -30,16 +30,16 @@ const strokeStyle = ref('solid'); // solid, dashed, dotted
 const roughness = ref(1.2); // 0 (Architect), 1.2 (Artist), 2.5 (Cartoonist)
 
 const tools = [
-    { id: 'select', label: 'Selection', icon: 'M15.033 15.033a3 3 0 0 1-4.243 0l-4.243-4.243a3 3 0 0 1 0-4.243l4.243-4.243a3 3 0 0 1 4.243 0l4.243 4.243a3 3 0 0 1 0 4.243l-4.243 4.243Z' },
-    { id: 'hand', label: 'Hand (Pan)', icon: 'M10.05 3.475a.75.75 0 0 1 .107 1.053l-3.25 4a.75.75 0 0 1-1.077.078l-1.5-1.5a.75.75 0 0 1 1.06-1.06l.91.91 2.804-3.45a.75.75 0 0 1 1.046-.031Zm5.05 4a.75.75 0 0 1 .107 1.053l-3.25 4a.75.75 0 0 1-1.077.078l-1.5-1.5a.75.75 0 1 1 1.06-1.06l.91.91 2.804-3.45a.75.75 0 0 1 1.046-.031Z' },
-    { id: 'draw', label: 'Draw (Freehand)', icon: 'M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1-1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 3.42-3.42M9 3.5a5.5 5.5 0 0 0-5.5 5.5v.75c0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75V9A5.5 5.5 0 0 0 9 3.5z' },
-    { id: 'line', label: 'Line', icon: 'M3.75 12h16.5' },
-    { id: 'arrow', label: 'Arrow', icon: 'M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75' },
-    { id: 'rectangle', label: 'Rectangle', icon: 'M5.25 7.5A2.25 2.25 0 0 1 7.5 5.25h9a2.25 2.25 0 0 1 2.25 2.25v9a2.25 2.25 0 0 1-2.25 2.25h-9a2.25 2.25 0 0 1-2.25-2.25v-9z' },
-    { id: 'ellipse', label: 'Ellipse', icon: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z' },
-    { id: 'diamond', label: 'Diamond', icon: 'M12 2.25l9 9.75-9 9.75-9-9.75 9-9.75z' },
-    { id: 'text', label: 'Text', icon: 'M9 15h6M12 3v12M9 3h6' },
-    { id: 'eraser', label: 'Eraser', icon: 'M19 7h-8L4 14.5V19h4.5L19 11.5V7z' },
+    { id: 'select', label: 'Selection', icon: 'M6 3l12 9-5.5.5L16 21l-3 1-3.5-9.5L6 14V3z' },
+    { id: 'hand', label: 'Hand (Pan)', icon: 'M9 14V4a1.5 1.5 0 0 1 3 0v7M12 11V2a1.5 1.5 0 0 1 3 0v9M15 11V3a1.5 1.5 0 0 1 3 0v8M18 11v4a5 5 0 0 1-10 0v-3.5a1.5 1.5 0 0 1 3 0V11' },
+    { id: 'draw', label: 'Draw (Freehand)', icon: 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 1 1 3.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' },
+    { id: 'line', label: 'Line', icon: 'M5 19L19 5' },
+    { id: 'arrow', label: 'Arrow', icon: 'M19 5H12M19 5v7M19 5L5 19' },
+    { id: 'rectangle', label: 'Rectangle', icon: 'M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z' },
+    { id: 'ellipse', label: 'Ellipse', icon: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z' },
+    { id: 'diamond', label: 'Diamond', icon: 'M12 2L2 12l10 10 10-10L12 2z' },
+    { id: 'text', label: 'Text', icon: 'M4 7V4h16v3M12 4v16M9 20h6' },
+    { id: 'eraser', label: 'Eraser', icon: 'M18 13l-6 6H6v-6l6-6 6 6z M12 7L6 13 M21 20H12' },
 ];
 
 const colors = ['#818CF8', '#F59E0B', '#10B981', '#EF4444', '#EC4899', '#38BDF8', '#FFFFFF'];
@@ -647,35 +647,7 @@ watch([activeTool, strokeColor, fillColor, fillStyle, strokeWidth, strokeStyle, 
                     class="p-2 rounded-xl transition-all duration-200"
                     :title="tool.label"
                 >
-                    <!-- Customize Select icon -->
-                    <svg v-if="tool.id === 'select'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    <!-- Customize Hand icon -->
-                    <svg v-else-if="tool.id === 'hand'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.05 3.475a.75.75 0 0 1 .107 1.053l-3.25 4a.75.75 0 0 1-1.077.078l-1.5-1.5a.75.75 0 0 1 1.06-1.06l.91.91 2.804-3.45a.75.75 0 0 1 1.046-.031Z" />
-                    </svg>
-                    <!-- Customize Text icon -->
-                    <svg v-else-if="tool.id === 'text'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v-7.5m-3-3h6m-3 0v7.5" />
-                    </svg>
-                    <!-- SVG icons default path -->
-                    <svg v-else-if="tool.id === 'line'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5" />
-                    </svg>
-                    <svg v-else-if="tool.id === 'arrow'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                    </svg>
-                    <svg v-else-if="tool.id === 'rectangle'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                    <svg v-else-if="tool.id === 'ellipse'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="9" stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-                    <svg v-else-if="tool.id === 'diamond'" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18M3 12h18" />
-                    </svg>
-                    <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" :d="tool.icon" />
                     </svg>
                 </button>
