@@ -39,10 +39,17 @@ class FinanceController extends Controller
             ->where('type', 'expense')
             ->sum('amount');
 
+        $driver = \DB::connection()->getDriverName();
+        $dateExpr = match ($driver) {
+            'sqlite' => "strftime('%Y-%m', date)",
+            'pgsql' => "TO_CHAR(date, 'YYYY-MM')",
+            default => "DATE_FORMAT(date, '%Y-%m')"
+        };
+
         // Monthly trend (last 12 months)
         $monthlyTrend = Transaction::where('user_id', Auth::id())
             ->where('date', '>=', now()->subMonths(12)->startOfMonth())
-            ->selectRaw("DATE_FORMAT(date, '%Y-%m') as month, type, SUM(amount) as total")
+            ->selectRaw("{$dateExpr} as month, type, SUM(amount) as total")
             ->groupBy('month', 'type')
             ->orderBy('month')
             ->get()

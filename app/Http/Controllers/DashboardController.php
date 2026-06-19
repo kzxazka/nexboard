@@ -35,11 +35,18 @@ class DashboardController extends Controller
             ->where('type', 'expense')
             ->sum('amount');
 
+        $driver = \DB::connection()->getDriverName();
+        $dateExpr = match ($driver) {
+            'sqlite' => "strftime('%Y-%m', date)",
+            'pgsql' => "TO_CHAR(date, 'YYYY-MM')",
+            default => "DATE_FORMAT(date, '%Y-%m')"
+        };
+
         // Monthly revenue for chart (last 6 months)
         $monthlyRevenue = Transaction::where('user_id', $user->id)
             ->where('type', 'income')
             ->where('date', '>=', now()->subMonths(6)->startOfMonth())
-            ->selectRaw("DATE_FORMAT(date, '%Y-%m') as month, SUM(amount) as total")
+            ->selectRaw("{$dateExpr} as month, SUM(amount) as total")
             ->groupBy('month')
             ->orderBy('month')
             ->pluck('total', 'month')
