@@ -109,6 +109,9 @@
                focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none;
         background: rgba(0, 0, 0, 0.2);
     }
+    .input-dark option {
+        @apply bg-nexboard-surface text-nexboard-on-surface;
+    }
 
     /* Sidebar nav item */
     .sidebar-link {

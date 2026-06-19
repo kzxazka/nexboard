@@ -25,7 +25,11 @@ class TaskController extends Controller
 
         $validated['order'] = $maxOrder + 1;
 
-        Task::create($validated);
+        $task = Task::create($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json($task);
+        }
 
         return redirect()->back()->with('success', 'Task created successfully.');
     }
@@ -70,6 +74,10 @@ class TaskController extends Controller
     public function destroy(Task $task)
     {
         $task->delete();
+
+        if (request()->wantsJson()) {
+            return response()->json(['message' => 'Task deleted successfully.']);
+        }
 
         return redirect()->back()->with('success', 'Task deleted successfully.');
     }

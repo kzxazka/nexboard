@@ -43,6 +43,10 @@ class SketchController extends Controller
             'title' => 'nullable|string|max:255',
         ]);
 
+        if (empty($validated['title'])) {
+            $validated['title'] = 'Untitled Sketch';
+        }
+
         $sketch = Sketch::create($validated);
 
         return redirect()->route('sketches.show', $sketch)->with('success', 'Sketch created.');

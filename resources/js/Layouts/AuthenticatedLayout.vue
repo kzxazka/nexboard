@@ -138,7 +138,7 @@ const isActive = (routeName) => {
                 </button>
 
                 <!-- Page Title -->
-                <div class="hidden lg:block">
+                <div class="hidden lg:block flex-1 mx-6">
                     <slot name="header" />
                 </div>
 
