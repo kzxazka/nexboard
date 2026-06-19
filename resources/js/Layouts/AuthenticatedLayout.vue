@@ -68,10 +68,8 @@ const isActive = (routeName) => {
         >
             <!-- Logo -->
             <div class="flex items-center gap-3 px-4 h-16 border-b border-white/10 shrink-0">
-                <div class="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center shrink-0">
-                    <svg class="w-5 h-5 text-nexboard-on-surface" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
+                    <img src="/nextboard_favicon.png" alt="NexBoard Logo" class="w-8 h-8 object-contain drop-shadow-md" />
                 </div>
                 <Transition
                     enter-active-class="transition-opacity duration-200"
